@@ -9,7 +9,15 @@ import javax.validation.constraints.*;
 /** The category of the challenge. */
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen")
 public enum ChallengeCategoryDto {
-  FEATURED("featured");
+  FEATURED("featured"),
+
+  STARTING_SOON("starting_soon"),
+
+  ENDING_SOON("ending_soon"),
+
+  RECENTLY_LAUNCHED("recently_launched"),
+
+  RECENTLY_COMPLETED("recently_completed");
 
   private String value;
 
