@@ -386,8 +386,8 @@ components:
         - featured
         - starting_soon
         - ending_soon
-        - recently_launched
-        - recently_completed
+        - recently_started
+        - recently_ended
       example: featured
     ChallengeSearchQuery:
       type: object

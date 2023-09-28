@@ -15,9 +15,9 @@ public enum ChallengeCategoryDto {
 
   ENDING_SOON("ending_soon"),
 
-  RECENTLY_LAUNCHED("recently_launched"),
+  RECENTLY_STARTED("recently_started"),
 
-  RECENTLY_COMPLETED("recently_completed");
+  RECENTLY_ENDED("recently_ended");
 
   private String value;
 
