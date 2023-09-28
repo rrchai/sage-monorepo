@@ -264,46 +264,46 @@ public class CustomChallengeRepositoryImpl implements CustomChallengeRepository 
     return pf.bool(
             b -> {
               for (ChallengeCategoryDto category : query.getCategories()) {
+
+                SearchPredicate datePredicate;
+                SearchPredicate statusPredicate;
+
                 switch (category) {
                   case RECENTLY_STARTED -> {
-                    SearchPredicate datePredicate =
+                    datePredicate =
                         pf.range().field("end_date").between(lastQuarter, now).toPredicate();
-                    SearchPredicate statusPredicate =
+                    statusPredicate =
                         pf.match().field("status").matching("completed").toPredicate();
-                    b.should(
-                        pf.bool(innerB -> innerB.must(datePredicate).must(statusPredicate))
-                            .toPredicate());
                   }
                   case RECENTLY_ENDED -> {
-                    SearchPredicate datePredicate =
+                    datePredicate =
                         pf.range().field("start_date").between(lastQuarter, now).toPredicate();
-                    SearchPredicate statusPredicate =
+                    statusPredicate =
                         pf.match().field("status").matching("active").toPredicate();
-                    b.should(
-                        pf.bool(innerB -> innerB.must(datePredicate).must(statusPredicate))
-                            .toPredicate());
                   }
                   case STARTING_SOON -> {
-                    SearchPredicate datePredicate =
+                    datePredicate =
                         pf.range().field("start_date").between(now, nextQuarter).toPredicate();
-                    SearchPredicate statusPredicate =
+                    statusPredicate =
                         pf.match().field("status").matching("upcoming").toPredicate();
-                    b.should(
-                        pf.bool(innerB -> innerB.must(datePredicate).must(statusPredicate))
-                            .toPredicate());
                   }
                   case ENDING_SOON -> {
-                    SearchPredicate datePredicate =
+                    datePredicate =
                         pf.range().field("end_date").between(now, nextQuarter).toPredicate();
-                    SearchPredicate statusPredicate =
+                    statusPredicate =
                         pf.match().field("status").matching("active").toPredicate();
-                    b.should(
-                        pf.bool(innerB -> innerB.must(datePredicate).must(statusPredicate))
-                            .toPredicate());
                   }
                   default -> {
                     b.should(pf.match().field("categories.category").matching(category.toString()));
+                    return;
                   }
+                }
+                
+                if (datePredicate != null && statusPredicate != null) {
+                  b.should(
+                    pf.bool(innerB -> innerB.must(datePredicate).must(statusPredicate))
+                        .toPredicate()
+                  );
                 }
               }
             })
