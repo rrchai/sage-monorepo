@@ -404,6 +404,11 @@ components:
       - other
       example: container_image
       type: string
+    EdamConceptId:
+      description: The unique identifier of the EDAM concept.
+      example: 1
+      format: int64
+      type: integer
     ChallengeCategory:
       description: The category of the challenge.
       enum:
@@ -478,6 +483,16 @@ components:
           description: An array of challenge submission types used to filter the results.
           items:
             $ref: '#/components/schemas/ChallengeSubmissionType'
+          type: array
+        inputDataTypes:
+          description: An array of EDAM concept ID used to filter the results.
+          items:
+            $ref: '#/components/schemas/EdamConceptId'
+          type: array
+        operations:
+          description: An array of EDAM concept ID used to filter the results.
+          items:
+            $ref: '#/components/schemas/EdamConceptId'
           type: array
         categories:
           description: The array of challenge categories used to filter the results.
@@ -612,17 +627,22 @@ components:
       maxLength: 500
       nullable: true
       type: string
-    EdamData:
-      description: The EDAM Data concept.
+    EdamConcept:
+      description: The EDAM concept.
       example:
         classId: http://edamontology.org/data_0850
         preferredLabel: Sequence set
+        id: 1
       nullable: true
       properties:
+        id:
+          description: The unique identifier of the EDAM concept.
+          example: 1
+          format: int64
+          type: integer
         classId:
           example: http://edamontology.org/data_0850
           maxLength: 60
-          pattern: ^http:\/\/edamontology\.org\/data_\d+$
           type: string
         preferredLabel:
           example: Sequence set
@@ -630,6 +650,7 @@ components:
           type: string
       required:
       - classId
+      - id
       - preferredLabel
       type: object
     ChallengeStartDate:
@@ -644,26 +665,6 @@ components:
       format: date
       nullable: true
       type: string
-    EdamOperation:
-      description: The EDAM Operation concept.
-      example:
-        classId: http://edamontology.org/operation_0230
-        preferredLabel: Sequence generation
-      nullable: true
-      properties:
-        classId:
-          example: http://edamontology.org/operation_0230
-          maxLength: 60
-          pattern: ^http:\/\/edamontology\.org\/operation_\d+$
-          type: string
-        preferredLabel:
-          example: Sequence generation
-          maxLength: 80
-          type: string
-      required:
-      - classId
-      - preferredLabel
-      type: object
     CreatedDateTime:
       description: Datetime when the object was added to the database.
       example: 2022-07-04T22:19:11Z
@@ -700,8 +701,9 @@ components:
         - featured
         headline: Example challenge headline
         operation:
-          classId: http://edamontology.org/operation_0230
-          preferredLabel: Sequence generation
+          classId: http://edamontology.org/data_0850
+          preferredLabel: Sequence set
+          id: 1
         slug: awesome-challenge
         startDate: 2017-07-21T00:00:00.000+00:00
         doi: https://doi.org/123/abc
@@ -709,8 +711,10 @@ components:
         inputDataTypes:
         - classId: http://edamontology.org/data_0850
           preferredLabel: Sequence set
+          id: 1
         - classId: http://edamontology.org/data_0850
           preferredLabel: Sequence set
+          id: 1
         updatedAt: 2022-07-04T22:19:11Z
       properties:
         id:
@@ -778,7 +782,7 @@ components:
           type: array
         inputDataTypes:
           items:
-            $ref: '#/components/schemas/EdamData'
+            $ref: '#/components/schemas/EdamConcept'
           type: array
         categories:
           items:
@@ -803,7 +807,7 @@ components:
           minimum: 0
           type: integer
         operation:
-          $ref: '#/components/schemas/EdamOperation'
+          $ref: '#/components/schemas/EdamConcept'
         createdAt:
           description: Datetime when the object was added to the database.
           example: 2022-07-04T22:19:11Z
@@ -958,6 +962,11 @@ components:
           $ref: '#/components/schemas/ChallengePlatformSort'
         direction:
           $ref: '#/components/schemas/ChallengePlatformDirection'
+        slugs:
+          description: An array of challenge platform slugs used to filter the results.
+          items:
+            $ref: '#/components/schemas/ChallengePlatformSlug'
+          type: array
         searchTerms:
           description: A string of search terms used to filter the results.
           example: synapse
@@ -1024,6 +1033,30 @@ components:
       type: object
       x-java-class-annotations:
       - '@lombok.Builder'
+    EdamConceptSort:
+      default: relevance
+      description: What to sort results by.
+      enum:
+      - preferred_label
+      - relevance
+      type: string
+    EdamConceptDirection:
+      description: The direction to sort the results by.
+      enum:
+      - asc
+      - desc
+      nullable: true
+      type: string
+    EdamSection:
+      description: The EDAM section (sub-ontology).
+      enum:
+      - data
+      - format
+      - identifier
+      - operation
+      - topic
+      example: data
+      type: string
     EdamConceptSearchQuery:
       description: An EDAM concept search query.
       properties:
@@ -1039,37 +1072,25 @@ components:
           format: int32
           minimum: 1
           type: integer
+        sort:
+          $ref: '#/components/schemas/EdamConceptSort'
+        direction:
+          $ref: '#/components/schemas/EdamConceptDirection'
+        ids:
+          description: An array of EDAM concept ids used to filter the results.
+          items:
+            $ref: '#/components/schemas/EdamConceptId'
+          type: array
         searchTerms:
           description: A string of search terms used to filter the results.
           example: sequence image
           type: string
-      type: object
-    EdamConceptId:
-      description: The unique identifier of the EDAM concept.
-      example: 1
-      format: int64
-      type: integer
-    EdamConcept:
-      description: The EDAM concept.
-      nullable: true
-      properties:
-        id:
-          description: The unique identifier of the EDAM concept.
-          example: 1
-          format: int64
-          type: integer
-        classId:
-          example: http://edamontology.org/data_0850
-          maxLength: 60
-          type: string
-        preferredLabel:
-          example: Sequence set
-          maxLength: 80
-          type: string
-      required:
-      - classId
-      - id
-      - preferredLabel
+        sections:
+          description: An array of EDAM sections (sub-ontologies) used to filter the
+            results.
+          items:
+            $ref: '#/components/schemas/EdamSection'
+          type: array
       type: object
     EdamConceptsPage:
       allOf:

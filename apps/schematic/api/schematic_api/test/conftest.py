@@ -27,9 +27,6 @@ def csv_to_json_str(path: str) -> str:
 GET_ACCESS_TOKEN_MOCK = (
     "schematic_api.controllers.manifest_generation_controller_impl.get_access_token"
 )
-CREATE_SINGLE_MANIFEST_MOCK = (
-    "schematic.manifest.generator.ManifestGenerator.create_single_manifest"
-)
 CREATE_MANIFESTS_MOCK = (
     "schematic.manifest.generator.ManifestGenerator.create_manifests"
 )
@@ -109,18 +106,3 @@ def fixture_incorrect_manifest_dataframe() -> Generator:
     Yields the path to biospecimen manifest csv
     """
     yield INCORRECT_MANIFEST_PATH
-
-
-@pytest.fixture(scope="session", name="incorrect_manifest_errors")
-def fixture_incorrect_manifest_errors() -> Generator:
-    """
-    Yields the expected errors from the incorrect manifest
-    """
-    yield [
-        [
-            "2",
-            "Wrong schema",
-            "'Tissue Status' is a required property",
-            "Wrong schema",
-        ]
-    ]

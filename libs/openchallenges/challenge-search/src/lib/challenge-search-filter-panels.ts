@@ -6,6 +6,7 @@ import {
   challengeSubmissionTypesFilter,
   challengeIncentivesFilter,
   challengePlatformsFilter,
+  challengeOperationsFilter,
   challengeOrganizationsFilter,
   challengeOrganizersFilter,
   challengeCategoriesFilter,
@@ -18,18 +19,10 @@ export const challengeStartYearRangeFilterPanel: FilterPanel = {
   collapsed: false,
 };
 
-// checkbox filters
-export const challengeStatusFilterPanel: FilterPanel = {
-  query: 'status',
-  label: 'Status',
-  options: challengeStatusFilter,
-  collapsed: false,
-};
-
-export const challengeSubmissionTypesFilterPanel: FilterPanel = {
-  query: 'submissionTypes',
-  label: 'Submission Type',
-  options: challengeSubmissionTypesFilter,
+export const challengeCategoriesFilterPanel: FilterPanel = {
+  query: 'categories',
+  label: 'Category',
+  options: challengeCategoriesFilter,
   collapsed: false,
 };
 
@@ -40,26 +33,17 @@ export const challengeIncentivesFilterPanel: FilterPanel = {
   collapsed: false,
 };
 
-export const challengePlatformsFilterPanel: FilterPanel = {
-  query: 'platforms',
-  label: 'Platform',
-  options: challengePlatformsFilter,
-  collapsed: false,
-};
-
-// dropdown filters
 export const challengeInputDataTypesFilterPanel: FilterPanel = {
   query: 'inputDataTypes',
   label: 'Input Data Type',
   options: challengeInputDataTypesFilter,
   collapsed: false,
-  showAvatar: false,
 };
 
-export const challengeCategoriesFilterPanel: FilterPanel = {
-  query: 'categories',
-  label: 'Category',
-  options: challengeCategoriesFilter,
+export const challengeOperationsFilterPanel: FilterPanel = {
+  query: 'operations',
+  label: 'Operation',
+  options: challengeOperationsFilter,
   collapsed: false,
 };
 
@@ -77,4 +61,25 @@ export const challengeOrganizatersFilterPanel: FilterPanel = {
   options: challengeOrganizersFilter,
   collapsed: false,
   showAvatar: true,
+};
+
+export const challengePlatformsFilterPanel: FilterPanel = {
+  query: 'platforms',
+  label: 'Platform',
+  options: challengePlatformsFilter,
+  collapsed: false,
+};
+
+export const challengeStatusFilterPanel: FilterPanel = {
+  query: 'status',
+  label: 'Status',
+  options: challengeStatusFilter,
+  collapsed: false,
+};
+
+export const challengeSubmissionTypesFilterPanel: FilterPanel = {
+  query: 'submissionTypes',
+  label: 'Submission Type',
+  options: challengeSubmissionTypesFilter,
+  collapsed: false,
 };

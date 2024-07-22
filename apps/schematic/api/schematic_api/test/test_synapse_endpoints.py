@@ -2,11 +2,20 @@
 
 import json
 import os
+from unittest import mock
+import shutil
+from typing import Generator
 
 import pytest
 import yaml
 import pandas as pd
 
+from schematic.store import SynapseStorage  # type: ignore
+
+from schematic_api.controllers.utils import (
+    purge_synapse_cache,
+    check_synapse_cache_size,
+)
 from schematic_api.test import BaseTestCase
 from .conftest import (
     MANIFEST_METADATA_KEYS,
@@ -15,6 +24,7 @@ from .conftest import (
     csv_to_bytes,
     csv_to_json_str,
 )
+
 
 SECRETS_FILE = "schematic_api/test/data/synapse_config.yaml"
 EXAMPLE_SECRETS_FILE = "schematic_api/test/data/synapse_config_example.yaml"
@@ -38,11 +48,26 @@ HEADERS = {
 }
 
 
+@pytest.fixture(scope="session", name="synapse_store")
+def fixture_synapse_store() -> Generator[SynapseStorage, None, None]:
+    """
+    Yields A synapse storage object, and deletes the cache at the end of the session
+    """
+    synapse_store = SynapseStorage(
+        access_token=SYNAPSE_TOKEN, synapse_cache_path="test_cache_path"
+    )
+    yield synapse_store
+    shutil.rmtree("test_cache_path")
+
+
 @pytest.mark.synapse
 @pytest.mark.secrets
 class TestGenerateGoogleSheetManifests(BaseTestCase):
     """Tests google sheet manifest endpoint"""
 
+    # local environment has variable 'SECRETS_MANAGER_SECRETS that causes an error when creating
+    # google credentials
+    @mock.patch.dict(os.environ, {}, clear=True)
     def test_success1(self) -> None:
         """Test for successful result"""
         url = (
@@ -62,6 +87,9 @@ class TestGenerateGoogleSheetManifests(BaseTestCase):
         assert isinstance(links, list)
         assert len(links) == 2
 
+    # local environment has variable 'SECRETS_MANAGER_SECRETS that causes an error when creating
+    # google credentials
+    @mock.patch.dict(os.environ, {}, clear=True)
     def test_success2(self) -> None:
         """Test for successful result"""
         url = (
@@ -323,3 +351,18 @@ class TestStorageEndpoints(BaseTestCase):
         for manifest in response.json["manifests"]:
             assert isinstance(manifest, dict)
             assert list(manifest.keys()) == MANIFEST_METADATA_KEYS
+
+
+@pytest.mark.synapse
+@pytest.mark.secrets
+class TestPurgeSynapseCache:  # pylint: disable=too-few-public-methods
+    """Tests purge_synapse_cache"""
+
+    def test_success(self, synapse_store: SynapseStorage) -> None:
+        """Tests for a successful purge"""
+        size_before_purge = check_synapse_cache_size(synapse_store.root_synapse_cache)
+        purge_synapse_cache(
+            synapse_store, maximum_storage_allowed_cache_gb=0.000001, minute_buffer=0
+        )
+        size_after_purge = check_synapse_cache_size(synapse_store.root_synapse_cache)
+        assert size_before_purge > size_after_purge

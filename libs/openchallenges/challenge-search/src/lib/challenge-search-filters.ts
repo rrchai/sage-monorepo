@@ -12,7 +12,7 @@ const thisYear = new Date().getFullYear();
 const updateYear = (
   thisYear: number,
   startYearDiff: number,
-  endYearDiff: number
+  endYearDiff: number,
 ) => {
   return {
     start: `${thisYear + startYearDiff}-01-01`,
@@ -58,6 +58,7 @@ export const challengeStartYearRangeFilter: Filter[] = [
 export const challengeCategoriesFilter: Filter[] = ChallengeCategoriesOptions;
 export const challengeIncentivesFilter: Filter[] = ChallengeIncentivesOptions;
 export const challengeInputDataTypesFilter: Filter[] = [];
+export const challengeOperationsFilter: Filter[] = [];
 export const challengeOrganizationsFilter: Filter[] = [];
 export const challengeOrganizersFilter: Filter[] = [];
 export const challengePlatformsFilter: Filter[] = [];

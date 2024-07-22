@@ -64,6 +64,9 @@ public class CustomChallengeRepositoryImpl implements CustomChallengeRepository 
     if (query.getSubmissionTypes() != null && !query.getSubmissionTypes().isEmpty()) {
       predicates.add(getChallengeSubmissionTypesPredicate(pf, query));
     }
+    if (query.getInputDataTypes() != null && !query.getInputDataTypes().isEmpty()) {
+      predicates.add(getInputDataTypesPredicate(pf, query));
+    }
     if (query.getIncentives() != null && !query.getIncentives().isEmpty()) {
       predicates.add(getChallengeIncentivesPredicate(pf, query));
     }
@@ -75,6 +78,9 @@ public class CustomChallengeRepositoryImpl implements CustomChallengeRepository 
     }
     if (query.getCategories() != null && !query.getCategories().isEmpty()) {
       predicates.add(getCategoriesPredicate(pf, query));
+    }
+    if (query.getOperations() != null && !query.getOperations().isEmpty()) {
+      predicates.add(getChallengeOperationPredicate(pf, query));
     }
 
     SearchSort sort = getSearchSort(sf, query);
@@ -147,6 +153,17 @@ public class CustomChallengeRepositoryImpl implements CustomChallengeRepository 
         .toPredicate();
   }
 
+  private SearchPredicate getChallengeOperationPredicate(
+      SearchPredicateFactory pf, ChallengeSearchQueryDto query) {
+    return pf.bool(
+            b -> {
+              for (Long operation : query.getOperations()) {
+                b.should(pf.match().field("operation.id").matching(operation));
+              }
+            })
+        .toPredicate();
+  }
+
   /**
    * Matches the challenges whose at least one of their submission types is in the list of
    * submission types specified.
@@ -162,6 +179,17 @@ public class CustomChallengeRepositoryImpl implements CustomChallengeRepository 
               for (ChallengeSubmissionTypeDto submissionType : query.getSubmissionTypes()) {
                 b.should(
                     pf.match().field("submission_types.name").matching(submissionType.toString()));
+              }
+            })
+        .toPredicate();
+  }
+
+  private SearchPredicate getInputDataTypesPredicate(
+      SearchPredicateFactory pf, ChallengeSearchQueryDto query) {
+    return pf.bool(
+            b -> {
+              for (Long edamConceptId : query.getInputDataTypes()) {
+                b.should(pf.match().field("input_data_types.id").matching(edamConceptId));
               }
             })
         .toPredicate();

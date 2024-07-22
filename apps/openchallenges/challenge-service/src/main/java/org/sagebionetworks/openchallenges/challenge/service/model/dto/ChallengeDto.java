@@ -61,7 +61,7 @@ public class ChallengeDto {
 
   @JsonProperty("inputDataTypes")
   @Valid
-  private List<EdamDataDto> inputDataTypes = null;
+  private List<EdamConceptDto> inputDataTypes = null;
 
   @JsonProperty("categories")
   @Valid
@@ -79,7 +79,7 @@ public class ChallengeDto {
   private Integer starredCount = 0;
 
   @JsonProperty("operation")
-  private EdamOperationDto operation = null;
+  private EdamConceptDto operation = null;
 
   @JsonProperty("createdAt")
   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
@@ -380,12 +380,12 @@ public class ChallengeDto {
     this.submissionTypes = submissionTypes;
   }
 
-  public ChallengeDto inputDataTypes(List<EdamDataDto> inputDataTypes) {
+  public ChallengeDto inputDataTypes(List<EdamConceptDto> inputDataTypes) {
     this.inputDataTypes = inputDataTypes;
     return this;
   }
 
-  public ChallengeDto addInputDataTypesItem(EdamDataDto inputDataTypesItem) {
+  public ChallengeDto addInputDataTypesItem(EdamConceptDto inputDataTypesItem) {
     if (this.inputDataTypes == null) {
       this.inputDataTypes = new ArrayList<>();
     }
@@ -400,11 +400,11 @@ public class ChallengeDto {
    */
   @Valid
   @Schema(name = "inputDataTypes", required = false)
-  public List<EdamDataDto> getInputDataTypes() {
+  public List<EdamConceptDto> getInputDataTypes() {
     return inputDataTypes;
   }
 
-  public void setInputDataTypes(List<EdamDataDto> inputDataTypes) {
+  public void setInputDataTypes(List<EdamConceptDto> inputDataTypes) {
     this.inputDataTypes = inputDataTypes;
   }
 
@@ -510,7 +510,7 @@ public class ChallengeDto {
     this.starredCount = starredCount;
   }
 
-  public ChallengeDto operation(EdamOperationDto operation) {
+  public ChallengeDto operation(EdamConceptDto operation) {
     this.operation = operation;
     return this;
   }
@@ -522,11 +522,11 @@ public class ChallengeDto {
    */
   @Valid
   @Schema(name = "operation", required = false)
-  public EdamOperationDto getOperation() {
+  public EdamConceptDto getOperation() {
     return operation;
   }
 
-  public void setOperation(EdamOperationDto operation) {
+  public void setOperation(EdamConceptDto operation) {
     this.operation = operation;
   }
 

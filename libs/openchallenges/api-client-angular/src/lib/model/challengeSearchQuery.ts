@@ -64,6 +64,14 @@ export interface ChallengeSearchQuery {
      */
     submissionTypes?: Array<ChallengeSubmissionType>;
     /**
+     * An array of EDAM concept ID used to filter the results.
+     */
+    inputDataTypes?: Array<number>;
+    /**
+     * An array of EDAM concept ID used to filter the results.
+     */
+    operations?: Array<number>;
+    /**
      * The array of challenge categories used to filter the results.
      */
     categories?: Array<ChallengeCategory>;

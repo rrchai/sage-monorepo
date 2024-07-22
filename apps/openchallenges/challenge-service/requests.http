@@ -44,9 +44,13 @@ GET {{basePath}}/challenges?searchTerms=mortality%20dream
 
 GET {{basePath}}/challenges?minStartDate=2017-01-01&maxStartDate=2017-12-31
 
-### List the challenges that include the input data type 'genomic'.
+### List the challenges that have their operation ID set to 2230.
 
-GET {{basePath}}/challenges?inputDataTypes=genomic
+GET {{basePath}}/challenges?operations=2230
+
+### Get the challenges whose input data types include the EDAM concept ID 2 or 18
+
+GET {{basePath}}/challenges?inputDataTypes=2,18
 
 ### List the challenges by category: featured
 
@@ -108,9 +112,13 @@ GET {{basePath}}/challengePlatforms?sort=name
 
 GET {{basePath}}/challengePlatforms?searchTerms=synapse
 
-### Get a challenge platform by ID.
+### Get a challenge platform that matches a specific slug.
 
 GET {{basePath}}/challengePlatforms/synapse
+
+### List the challenge platforms by multiple slugs.
+
+GET {{basePath}}/challengePlatforms?slugs=synapse,kaggle
 
 ### List the challenge input data types.
 
@@ -140,6 +148,23 @@ GET {{basePath}}/challengeAnalytics/challengesPerYear
 
 GET {{basePath}}/edamConcepts
 
+### List the EDAM concepts by EDAM concept IDs
+
+GET {{basePath}}/edamConcepts?ids=1,100
+
+
 ### List the EDAM concepts that match the space-separated search terms "sequence".
 
 GET {{basePath}}/edamConcepts?searchTerms=sequence
+
+### List the EDAM concepts that belong to the "data" or "format" section.
+
+GET {{basePath}}/edamConcepts?sections=data,format
+
+### Sort the EDAM concepts by their preferred label in asc order (asc by default)
+
+GET {{basePath}}/edamConcepts?sort=preferred_label&direction=asc
+
+### Sort the challenges by relevance (still by preferred label if search terms is empty)
+
+GET {{basePath}}/edamConcepts?sort=relevance&searchTerms=data

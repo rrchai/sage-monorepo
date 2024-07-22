@@ -32,7 +32,7 @@ properties:
   inputDataTypes:
     type: array
     items:
-      $ref: EdamData.yaml
+      $ref: EdamConcept.yaml
   categories:
     type: array
     items:
@@ -48,7 +48,7 @@ properties:
     minimum: 0
     example: 100
   operation:
-    $ref: EdamOperation.yaml
+    $ref: EdamConcept.yaml
   createdAt:
     $ref: CreatedDateTime.yaml
   updatedAt:

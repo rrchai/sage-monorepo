@@ -101,9 +101,9 @@ public class ChallengeEntity {
       inverseJoinColumns = @JoinColumn(name = "edam_concept_id"))
   @IndexedEmbedded(
       name = "input_data_types",
-      includePaths = {"class_id", "preferred_label"})
+      includePaths = {"id", "class_id", "preferred_label"})
   @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
-  private List<EdamDataEntity> inputDataTypes;
+  private List<EdamConceptEntity> inputDataTypes;
 
   @OneToMany(mappedBy = "challenge", fetch = FetchType.LAZY)
   @IndexedEmbedded(includePaths = {"name"})
@@ -133,9 +133,9 @@ public class ChallengeEntity {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "operation_id", nullable = true)
-  @IndexedEmbedded(includePaths = {"class_id", "preferred_label"})
+  @IndexedEmbedded(includePaths = {"id", "class_id", "preferred_label"})
   @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.SHALLOW)
-  private EdamOperationEntity operation;
+  private EdamConceptEntity operation;
 
   @Column(name = "created_at")
   @GenericField(name = "created_at", sortable = Sortable.YES)

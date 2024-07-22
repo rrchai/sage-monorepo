@@ -77,6 +77,14 @@ function openchallenges-infra {
   node dist/apps/openchallenges/infra/src/main.js "$@"
 }
 
+function agora-build-images {
+  nx run-many --target=build-image --projects=agora-* --parallel=3
+}
+
+function model-ad-build-images {
+  nx run-many --target=build-image --projects=model-ad-* --parallel=3
+}
+
 function openchallenges-build-images {
   nx run-many --target=build-image --projects=openchallenges-* --parallel=3
 }
@@ -106,7 +114,7 @@ function workspace-nx-cloud-help {
 function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
 
 function check-vscode-version {
-  expected="1.85.2"
+  expected="1.91.1"
   actual="$(code --version | head -n 1)"
   if [ $(version $actual) -lt $(version $expected) ]; then
     echo "📦 Please update VS Code (${actual}) to version ${expected} or above."
@@ -149,4 +157,8 @@ function workspace-initialize-env {
   # Needed to run ES containers
   # See https://github.com/Sage-Bionetworks/sage-monorepo/issues/1899
   sudo sysctl -w vm.max_map_count=262144 1> /dev/null
+
+  # Prevent Corepack showing the URL when it needs to download software
+  # https://github.com/nodejs/corepack/blob/main/README.md#environment-variables
+  export COREPACK_ENABLE_DOWNLOAD_PROMPT="0"
 }

@@ -11,6 +11,9 @@ import {
   ChallengePlatformSearchQuery,
   ChallengePlatformService,
   ChallengePlatformSort,
+  EdamConceptSearchQuery,
+  EdamConceptService,
+  EdamConceptSort,
   Image,
   ImageAspectRatio,
   ImageHeight,
@@ -23,76 +26,89 @@ import {
 } from '@sagebionetworks/openchallenges/api-client-angular';
 import { forkJoinConcurrent } from '@sagebionetworks/openchallenges/util';
 import { Filter } from '@sagebionetworks/openchallenges/ui';
+import { ChallengeSearchDropdown } from './challenge-search-dropdown';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ChallengeSearchDataService {
-  private platformSearchTerms: BehaviorSubject<string> =
-    new BehaviorSubject<string>('');
+  private edamConceptSearchQuery: BehaviorSubject<EdamConceptSearchQuery> =
+    new BehaviorSubject<EdamConceptSearchQuery>({
+      sort: EdamConceptSort.PreferredLabel,
+    });
 
-  private organizationSearchTerms: BehaviorSubject<string> =
-    new BehaviorSubject<string>('');
+  private organizationSearchQuery: BehaviorSubject<OrganizationSearchQuery> =
+    new BehaviorSubject<OrganizationSearchQuery>({
+      sort: OrganizationSort.Name,
+    });
+
+  private platformSearchQuery: BehaviorSubject<ChallengePlatformSearchQuery> =
+    new BehaviorSubject<ChallengePlatformSearchQuery>({
+      sort: ChallengePlatformSort.Name,
+    });
 
   constructor(
     private challengePlatformService: ChallengePlatformService,
+    private edamConceptService: EdamConceptService,
+    private imageService: ImageService,
     private organizationService: OrganizationService,
-    private imageService: ImageService
   ) {}
 
-  setPlatformSearchTerms(searchTerms: string) {
-    this.platformSearchTerms.next(searchTerms);
+  setEdamConceptSearchQuery(searchQuery: EdamConceptSearchQuery) {
+    const currentState = this.edamConceptSearchQuery.getValue();
+    this.edamConceptSearchQuery.next({ ...currentState, ...searchQuery });
   }
 
-  setOriganizationSearchTerms(searchTerms: string) {
-    this.organizationSearchTerms.next(searchTerms);
+  setOriganizationSearchQuery(searchQuery: OrganizationSearchQuery) {
+    const currentState = this.organizationSearchQuery.getValue();
+    this.organizationSearchQuery.next({ ...currentState, ...searchQuery });
   }
 
-  searchPlatforms(): Observable<Filter[]> {
-    return this.platformSearchTerms.pipe(
+  setPlatformSearchQuery(searchQuery: ChallengePlatformSearchQuery) {
+    const currentState = this.platformSearchQuery.getValue();
+    this.platformSearchQuery.next({ ...currentState, ...searchQuery });
+  }
+
+  getEdamConcepts(newQuery: EdamConceptSearchQuery): Observable<Filter[]> {
+    return this.edamConceptSearchQuery.pipe(
       debounceTime(400),
       distinctUntilChanged(),
-      switchMap((searchTerm: string) => {
-        const sortedBy: ChallengePlatformSort = 'name';
-        const platformQuery: ChallengePlatformSearchQuery = {
-          searchTerms: searchTerm,
-          sort: sortedBy,
-        };
-        return this.challengePlatformService.listChallengePlatforms(
-          platformQuery
-        );
-      }),
+      switchMap((searchQuery: EdamConceptSearchQuery) =>
+        // use the properties from new query to overwrite the ones from old query
+        this.edamConceptService.listEdamConcepts({
+          ...searchQuery,
+          ...newQuery,
+        }),
+      ),
       map((page) =>
-        page.challengePlatforms.map((platform) => ({
-          value: platform.slug,
-          label: platform.name,
+        page.edamConcepts.map((edamConcept) => ({
+          value: edamConcept.id,
+          label: edamConcept.preferredLabel,
           active: false,
-        }))
-      )
+        })),
+      ),
     );
   }
 
-  searchOriganizations(): Observable<Filter[]> {
-    return this.organizationSearchTerms.pipe(
+  getOriganizations(newQuery: OrganizationSearchQuery): Observable<Filter[]> {
+    return this.organizationSearchQuery.pipe(
       debounceTime(400),
       distinctUntilChanged(),
-      switchMap((searchTerm: string) => {
-        const sortBy: OrganizationSort = 'name';
-        const orgQuery: OrganizationSearchQuery = {
-          searchTerms: searchTerm,
-          sort: sortBy,
-        };
-        return this.organizationService.listOrganizations(orgQuery);
-      }),
+      switchMap((searchQuery: OrganizationSearchQuery) =>
+        this.organizationService.listOrganizations({
+          ...searchQuery,
+          ...newQuery,
+        }),
+      ),
       map((page) => page.organizations),
       switchMap((orgs) =>
         forkJoin({
           orgs: of(orgs),
           avatarUrls: forkJoinConcurrent(
             orgs.map((org) => this.getOrganizationAvatarUrl(org)),
-            Infinity
+            Infinity,
           ),
-        })
+        }),
       ),
       map(({ orgs, avatarUrls }) =>
         orgs.map((org, index) => ({
@@ -100,8 +116,8 @@ export class ChallengeSearchDataService {
           label: org.name,
           avatarUrl: avatarUrls[index]?.url,
           active: false,
-        }))
-      )
+        })),
+      ),
     );
   }
 
@@ -113,14 +129,56 @@ export class ChallengeSearchDataService {
         height: ImageHeight._32px,
         aspectRatio: ImageAspectRatio._11,
       } as ImageQuery),
-      of({ url: '' })
+      of({ url: '' }),
     ).pipe(
       catchError(() => {
         console.error(
-          'Unable to get the image url. Please check the logs of the image service.'
+          'Unable to get the image url. Please check the logs of the image service.',
         );
         return of({ url: '' });
-      })
+      }),
     );
+  }
+
+  getPlatforms(newQuery: ChallengePlatformSearchQuery): Observable<Filter[]> {
+    return this.platformSearchQuery.pipe(
+      debounceTime(400),
+      distinctUntilChanged(),
+      switchMap((searchQuery: ChallengePlatformSearchQuery) => {
+        return this.challengePlatformService.listChallengePlatforms({
+          ...searchQuery,
+          ...newQuery,
+        });
+      }),
+      map((page) =>
+        page.challengePlatforms.map((platform) => ({
+          value: platform.slug,
+          label: platform.name,
+          active: false,
+        })),
+      ),
+    );
+  }
+
+  setSearchQuery(dropdown: ChallengeSearchDropdown, searchQuery = {}) {
+    const setQueryMethods = {
+      inputDataTypes: () => this.setEdamConceptSearchQuery(searchQuery),
+      operations: () => this.setEdamConceptSearchQuery(searchQuery),
+      organizations: () => this.setOriganizationSearchQuery(searchQuery),
+      platforms: () => this.setPlatformSearchQuery(searchQuery),
+    };
+
+    return setQueryMethods[dropdown]();
+  }
+
+  fetchData(dropdown: ChallengeSearchDropdown, searchQuery = {}) {
+    const fetchDataMethods = {
+      inputDataTypes: () => this.getEdamConcepts(searchQuery),
+      operations: () => this.getEdamConcepts(searchQuery),
+      organizations: () => this.getOriganizations(searchQuery),
+      platforms: () => this.getPlatforms(searchQuery),
+    };
+
+    return fetchDataMethods[dropdown]();
   }
 }
