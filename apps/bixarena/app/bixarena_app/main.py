@@ -30,7 +30,6 @@ from bixarena_app.page.bixarena_home import (
     update_cta_buttons_on_page_load,
 )
 import bixarena_app.page.bixarena_leaderboard as bixarena_leaderboard
-from bixarena_app.page.bixarena_leaderboard import refresh_leaderboard
 
 
 def _get_auth_base_url_ssr() -> str | None:
@@ -820,7 +819,7 @@ def build_app():
         )
 
         demo.load(
-            refresh_leaderboard,
+            bixarena_leaderboard.refresh_leaderboard,
             outputs=bixarena_leaderboard.leaderboard_view.outputs,
         )
 
