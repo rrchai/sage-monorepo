@@ -880,11 +880,7 @@ def build_side_by_side_ui_anony():
 
 
 def build_battle_page():
-    """Build the battle page
-
-    Returns:
-        tuple: (battle_page, example_prompt_ui, prompt_outputs) for hooking up navigation refresh
-    """
+    """Build the battle page."""
     # Initialize the demo with empty states
     load_demo_side_by_side_anony()
 
@@ -913,4 +909,4 @@ def build_battle_page():
         # Load JavaScript for prompt card click handlers
         battle_page.load(lambda: None, None, None, js=PROMPT_CARD_CLICK_JS)
 
-    return battle_page, example_prompt_ui, prompt_outputs
+    return battle_page

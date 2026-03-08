@@ -1,5 +1,4 @@
 import argparse
-import functools
 import logging
 import os
 
@@ -20,7 +19,6 @@ logger = logging.getLogger(__name__)
 from bixarena_app.page.bixarena_footer import build_footer
 from bixarena_app.page.bixarena_header import (
     build_header,
-    handle_login_click,
     update_battle_column,
     update_login_button,
 )
@@ -35,21 +33,6 @@ from bixarena_app.page.bixarena_leaderboard import (
     build_leaderboard_page,
     refresh_leaderboard,
 )
-from bixarena_app.page.bixarena_user import (
-    build_user_page,
-    handle_logout_click,
-    update_user_page,
-)
-
-
-class PageNavigator:
-    """Page navigation"""
-
-    def __init__(self, pages):
-        self.pages = pages
-
-    def show_page(self, index):
-        return [gr.Column(visible=(i == index)) for i in range(len(self.pages))]
 
 
 def _get_auth_base_url_ssr() -> str | None:
@@ -138,7 +121,6 @@ def sync_backend_session_on_load(request: gr.Request):
                             return (
                                 update_battle_column(request),
                                 update_login_button(request),
-                                *update_user_page(request),
                                 gr.HTML(""),
                             )
                         else:
@@ -163,7 +145,6 @@ def sync_backend_session_on_load(request: gr.Request):
     return (
         update_battle_column(request),
         update_login_button(request),
-        *update_user_page(request),
         gr.HTML(""),
     )
 
@@ -419,17 +400,6 @@ def build_app():
                 rotation_interval,
             ) = build_home_page()
 
-        with gr.Column(visible=False, elem_classes=["page-content"]) as battle_page:
-            _, example_prompt_ui, prompt_outputs = build_battle_page()
-
-        with gr.Column(
-            visible=False, elem_classes=["page-content"]
-        ) as leaderboard_page:
-            leaderboard_view = build_leaderboard_page()
-
-        with gr.Column(visible=False, elem_classes=["page-content"]) as user_page:
-            _, welcome_display, logout_btn = build_user_page()
-
         # Footer
         build_footer()
 
@@ -453,49 +423,22 @@ def build_app():
             + "</span>",
         )
 
-        pages = [home_page, battle_page, leaderboard_page, user_page]
-        navigator = PageNavigator(pages)
-        current_page = gr.State(value=0)
-
-        # Nav buttons that participate in active-page highlighting.
-        # Maps page index -> button. Home (0) has no button (logo serves as home link).
-        nav_button_page_map = {1: battle_btn, 2: leaderboard_btn}
-        nav_buttons = [battle_btn, leaderboard_btn]
-
-        def navigate_to(page_index):
-            """Navigate to a page and highlight the corresponding nav button."""
-            page_updates = navigator.show_page(page_index)
-            btn_updates = [
-                gr.update(
-                    variant="primary"
-                    if btn is nav_button_page_map.get(page_index)
-                    else "secondary"
-                )
-                for btn in nav_buttons
-            ]
-            return page_updates + btn_updates + [page_index]
-
-        nav_outputs = pages + nav_buttons + [current_page]
-
-        # Navigation - battle page will refresh prompts via its own load handler
+        # Navigation - JS redirects to real URLs
         battle_btn.click(
-            lambda: navigate_to(1),
-            outputs=nav_outputs,
+            None,
+            js="() => { window.location.href = '/battle'; }",
         )
-        # Leaderboard button - show page and refresh data
         leaderboard_btn.click(
-            lambda: navigate_to(2) + list(refresh_leaderboard()),
-            outputs=nav_outputs + leaderboard_view.outputs,
+            None,
+            js="() => { window.location.href = '/leaderboard'; }",
         )
-        # Authenticated CTA button - navigates to battle page
         cta_btn_authenticated.click(
-            lambda: navigate_to(1),
-            outputs=nav_outputs,
+            None,
+            js="() => { window.location.href = '/battle'; }",
         )
-        # Quest authenticated button - navigates to battle page
         quest_btn_authenticated.click(
-            lambda: navigate_to(1),
-            outputs=nav_outputs,
+            None,
+            js="() => { window.location.href = '/battle'; }",
         )
         # Quest login button - redirects to login page
         quest_btn_login.click(
@@ -509,27 +452,6 @@ def build_app():
             """,
         )
 
-        # Nav highlight updates for Home page (used after login/logout)
-        home_nav_highlights = [
-            gr.update(variant="secondary"),  # battle_btn
-            gr.update(variant="secondary"),  # leaderboard_btn
-            0,  # current_page state
-        ]
-
-        # Bind static args so Gradio can still inject request without warnings.
-        _login_handler = functools.partial(
-            handle_login_click, navigator, update_login_button, update_user_page
-        )
-        _logout_handler = functools.partial(
-            handle_logout_click, navigator, update_login_button, update_user_page
-        )
-
-        def login_handler(request: gr.Request | None = None):
-            return (*_login_handler(request), *home_nav_highlights)
-
-        def logout_handler(request: gr.Request | None = None):
-            return (*_logout_handler(request), *home_nav_highlights)
-
         # Login CTA button - redirects to login page
         cta_btn_login.click(
             None,
@@ -542,13 +464,9 @@ def build_app():
             """,
         )
 
-        # Login
+        # Login/logout - JS only (OAuth redirect or POST logout + redirect to /)
         login_btn.click(
-            login_handler,
-            outputs=pages
-            + [login_btn, welcome_display, logout_btn, cookie_html]
-            + nav_buttons
-            + [current_page],
+            None,
             js="""
 () => {
   const btn = document.querySelector('#login-btn button,#login-btn');
@@ -572,22 +490,13 @@ def build_app():
       }
   }
 }
-                """,
-        )
-
-        # Logout
-        logout_btn.click(
-            logout_handler,
-            outputs=pages
-            + [login_btn, welcome_display, logout_btn, cookie_html]
-            + nav_buttons
-            + [current_page],
+            """,
         )
 
         # Initial identity sync (not an OAuth callback—just a passive identity fetch)
         demo.load(
             sync_backend_session_on_load,
-            outputs=[battle_col, login_btn, welcome_display, logout_btn, cookie_html],
+            outputs=[battle_col, login_btn, cookie_html],
             js=cleanup_js,
         )
 
