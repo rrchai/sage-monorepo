@@ -760,7 +760,8 @@ def build_app():
         # (Removed MutationObserver; direct JS click handles login redirect.)
 
     with demo.route("Battle", "/battle"):
-        _, battle_col_b, _, leaderboard_btn_b, login_btn_b = build_header(
+        # _b suffix = /battle route header components
+        _, battle_col_b, battle_btn_b, leaderboard_btn_b, login_btn_b = build_header(
             active_page="battle"
         )
 
@@ -772,6 +773,10 @@ def build_app():
         cookie_html_b = gr.HTML("", visible=False, elem_id="cookie-html")
         gr.HTML(_build_auth_endpoint_html(_get_auth_base_url_csr()))
 
+        battle_btn_b.click(
+            None,
+            js="() => { window.location.href = '/battle'; }",
+        )
         leaderboard_btn_b.click(
             None,
             js="() => { window.location.href = '/leaderboard'; }",
@@ -785,7 +790,8 @@ def build_app():
         )
 
     with demo.route("Leaderboard", "/leaderboard"):
-        _, battle_col_l, battle_btn_l, _, login_btn_l = build_header(
+        # _l suffix = /leaderboard route header components
+        _, battle_col_l, battle_btn_l, leaderboard_btn_l, login_btn_l = build_header(
             active_page="leaderboard"
         )
 
@@ -800,6 +806,10 @@ def build_app():
         battle_btn_l.click(
             None,
             js="() => { window.location.href = '/battle'; }",
+        )
+        leaderboard_btn_l.click(
+            None,
+            js="() => { window.location.href = '/leaderboard'; }",
         )
         login_btn_l.click(None, js=_LOGIN_LOGOUT_JS)
 
