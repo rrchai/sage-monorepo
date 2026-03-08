@@ -5,10 +5,11 @@ import gradio as gr
 from bixarena_app.auth.user_state import get_user_state
 
 
-def build_header():
+def build_header(active_page: str | None = None):
     """Build header with navigation and login button.
 
-    JS/state logic lives in Gradio callbacks (Option A), so this stays minimal.
+    active_page: "battle", "leaderboard", or None (no active nav button).
+    The matching nav button is rendered as primary to indicate the current page.
     """
     with gr.Row(elem_id="header-row") as header:
         with gr.Column(scale=4):
@@ -26,9 +27,15 @@ def build_header():
                 """
             )
         with gr.Column(scale=1, min_width=180, visible=False) as battle_col:
-            battle_btn = gr.Button("Battle", variant="secondary")
+            battle_btn = gr.Button(
+                "Battle",
+                variant="primary" if active_page == "battle" else "secondary",
+            )
         with gr.Column(scale=1, min_width=180):
-            leaderboard_btn = gr.Button("Leaderboard", variant="secondary")
+            leaderboard_btn = gr.Button(
+                "Leaderboard",
+                variant="primary" if active_page == "leaderboard" else "secondary",
+            )
         with gr.Column(scale=1, min_width=180):
             # Start as Login; value updated by load / callback events
             login_btn = gr.Button("Login", variant="primary", elem_id="login-btn")

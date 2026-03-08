@@ -11,7 +11,7 @@ from bixarena_app.auth.user_state import get_user_state
 from bixarena_app.config.constants import GTM_CONTAINER_ID
 from bixarena_app.config.utils import setup_logging
 from bixarena_app.opengraph import OpenGraphFixMiddleware, build_opengraph_meta_tags
-from bixarena_app.page.bixarena_battle import build_battle_page
+import bixarena_app.page.bixarena_battle as bixarena_battle
 
 # Configure logging first
 setup_logging()
@@ -66,6 +66,45 @@ def _get_auth_base_url_csr() -> str | None:
         "[config] Login/logout redirects will be disabled until configured."
     )
     return None
+
+
+def _build_auth_endpoint_html(auth_base: str | None) -> str:
+    """Build hidden HTML spans used by login/logout JS on every page."""
+    start_endpoint = f"{auth_base}/auth/login" if auth_base else ""
+    base_markup = auth_base or ""
+    return (
+        "<span id='login-start-endpoint' style='display:none'>"
+        + start_endpoint
+        + "</span><span id='backend-base' style='display:none'>"
+        + base_markup
+        + "</span>"
+    )
+
+
+_LOGIN_LOGOUT_JS = """
+() => {
+  const btn = document.querySelector('#login-btn button,#login-btn');
+  if(!btn) return;
+  const label = btn.innerText.trim();
+  if(label === 'Login') {
+      const el = document.getElementById('login-start-endpoint');
+      const url = el ? el.textContent.trim() : '';
+      if(url){ window.location.href = url; }
+      return;
+  }
+  if(label === 'Logout') {
+      const baseEl = document.getElementById('backend-base');
+      const base = baseEl ? baseEl.textContent.trim() : '';
+      if(base){
+          fetch(base + '/auth/logout', {method:'POST', credentials:'include'})
+             .finally(()=> {
+                 try { sessionStorage.setItem('justLoggedOut','1'); } catch(e) {}
+                 window.location.href = '/';
+             });
+      }
+  }
+}
+"""
 
 
 def sync_backend_session_on_load(request: gr.Request):
@@ -312,8 +351,11 @@ def build_app():
             --border-color-primary: rgba(228, 228, 231, 0.2);
             --body-text-color-subdued: rgba(229, 231, 235, 0.6);
         }
-        /* Hide Gradio's default footer */
+        /* Hide Gradio's default footer and auto-generated navbar */
         footer {
+            display: none !important;
+        }
+        .nav-holder {
             display: none !important;
         }
         /* Remove default padding from HTML containers */
@@ -410,18 +452,7 @@ def build_app():
         auth_base = _get_auth_base_url_csr()
         if not auth_base:
             print("[config] AUTH_BASE_URL_CSR missing; login button will be disabled.")
-            start_endpoint = ""
-            base_markup = ""
-        else:
-            start_endpoint = f"{auth_base}/auth/login"
-            base_markup = auth_base
-        gr.HTML(
-            "<span id='login-start-endpoint' style='display:none'>"
-            + start_endpoint
-            + "</span><span id='backend-base' style='display:none'>"
-            + base_markup
-            + "</span>",
-        )
+        gr.HTML(_build_auth_endpoint_html(auth_base))
 
         # Navigation - JS redirects to real URLs
         battle_btn.click(
@@ -465,33 +496,7 @@ def build_app():
         )
 
         # Login/logout - JS only (OAuth redirect or POST logout + redirect to /)
-        login_btn.click(
-            None,
-            js="""
-() => {
-  const btn = document.querySelector('#login-btn button,#login-btn');
-  if(!btn) return;
-  const label = btn.innerText.trim();
-  if(label === 'Login') {
-      const el = document.getElementById('login-start-endpoint');
-      const url = el ? el.textContent.trim() : '';
-      if(url){ window.location.href = url; }
-      return;
-  }
-  if(label === 'Logout') {
-      const baseEl = document.getElementById('backend-base');
-      const base = baseEl ? baseEl.textContent.trim() : '';
-      if(base){
-          fetch(base + '/auth/logout', {method:'POST', credentials:'include'})
-             .finally(()=> {
-                 try { sessionStorage.setItem('justLoggedOut','1'); } catch(e) {}
-                 window.location.href = '/';
-             });
-      }
-  }
-}
-            """,
-        )
+        login_btn.click(None, js=_LOGIN_LOGOUT_JS)
 
         # Initial identity sync (not an OAuth callback—just a passive identity fetch)
         demo.load(
@@ -755,6 +760,31 @@ def build_app():
             )
 
         # (Removed MutationObserver; direct JS click handles login redirect.)
+
+    with demo.route("Battle", "/battle"):
+        _, battle_col_b, _, leaderboard_btn_b, login_btn_b = build_header(
+            active_page="battle"
+        )
+
+        with gr.Column(elem_classes=["page-content"]):
+            bixarena_battle.battle_page.render()
+
+        build_footer()
+
+        cookie_html_b = gr.HTML("", visible=False, elem_id="cookie-html")
+        gr.HTML(_build_auth_endpoint_html(_get_auth_base_url_csr()))
+
+        leaderboard_btn_b.click(
+            None,
+            js="() => { window.location.href = '/leaderboard'; }",
+        )
+        login_btn_b.click(None, js=_LOGIN_LOGOUT_JS)
+
+        demo.load(
+            sync_backend_session_on_load,
+            outputs=[battle_col_b, login_btn_b, cookie_html_b],
+            js=cleanup_js,
+        )
 
     return demo
 

@@ -879,34 +879,23 @@ def build_side_by_side_ui_anony():
     )
 
 
-def build_battle_page():
-    """Build the battle page."""
-    # Initialize the demo with empty states
-    load_demo_side_by_side_anony()
+with gr.Blocks() as battle_page:
+    (
+        _,
+        example_prompt_ui,
+        prompt_outputs,
+        empty_prompt_js,
+        _,  # disclaimer (not needed)
+    ) = build_side_by_side_ui_anony()
 
-    with gr.Blocks(
-        title="BioArena - Benchmarking AI Models for Biomedical Breakthroughs",
-    ) as battle_page:
-        (
-            _,
-            example_prompt_ui,
-            prompt_outputs,
-            empty_prompt_js,
-            _,  # disclaimer (not needed)
-        ) = build_side_by_side_ui_anony()
+    battle_page.load(
+        example_prompt_ui.refresh_prompts,
+        outputs=prompt_outputs,
+    ).then(
+        lambda: None,
+        [],
+        [],
+        js=empty_prompt_js,
+    )
 
-        # Refresh example prompts when page loads to ensure each user sees different prompts
-        battle_page.load(
-            example_prompt_ui.refresh_prompts,
-            outputs=prompt_outputs,
-        ).then(
-            lambda: None,  # Install empty input validation
-            [],
-            [],
-            js=empty_prompt_js,
-        )
-
-        # Load JavaScript for prompt card click handlers
-        battle_page.load(lambda: None, None, None, js=PROMPT_CARD_CLICK_JS)
-
-    return battle_page
+    battle_page.load(lambda: None, None, None, js=PROMPT_CARD_CLICK_JS)
