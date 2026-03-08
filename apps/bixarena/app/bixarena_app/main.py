@@ -29,10 +29,8 @@ from bixarena_app.page.bixarena_home import (
     load_user_battles_on_page_load,
     update_cta_buttons_on_page_load,
 )
-from bixarena_app.page.bixarena_leaderboard import (
-    build_leaderboard_page,
-    refresh_leaderboard,
-)
+import bixarena_app.page.bixarena_leaderboard as bixarena_leaderboard
+from bixarena_app.page.bixarena_leaderboard import refresh_leaderboard
 
 
 def _get_auth_base_url_ssr() -> str | None:
@@ -784,6 +782,36 @@ def build_app():
             sync_backend_session_on_load,
             outputs=[battle_col_b, login_btn_b, cookie_html_b],
             js=cleanup_js,
+        )
+
+    with demo.route("Leaderboard", "/leaderboard"):
+        _, battle_col_l, battle_btn_l, _, login_btn_l = build_header(
+            active_page="leaderboard"
+        )
+
+        with gr.Column(elem_classes=["page-content"]):
+            bixarena_leaderboard.leaderboard_page.render()
+
+        build_footer()
+
+        cookie_html_l = gr.HTML("", visible=False, elem_id="cookie-html")
+        gr.HTML(_build_auth_endpoint_html(_get_auth_base_url_csr()))
+
+        battle_btn_l.click(
+            None,
+            js="() => { window.location.href = '/battle'; }",
+        )
+        login_btn_l.click(None, js=_LOGIN_LOGOUT_JS)
+
+        demo.load(
+            sync_backend_session_on_load,
+            outputs=[battle_col_l, login_btn_l, cookie_html_l],
+            js=cleanup_js,
+        )
+
+        demo.load(
+            refresh_leaderboard,
+            outputs=bixarena_leaderboard.leaderboard_view.outputs,
         )
 
     return demo

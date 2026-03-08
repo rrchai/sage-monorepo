@@ -198,246 +198,196 @@ def refresh_leaderboard():
     return placeholder_update, content_update, table_update, df, badge_html
 
 
-def build_leaderboard_page():
-    """Build the BixArena leaderboard page"""
+def _build_leaderboard_ui() -> "LeaderboardView":
+    """Build leaderboard UI components. Must be called inside an active gr.Blocks context."""
     # Don't fetch data initially
     initial_df = None
     initial_updated_at = None
 
-    # JavaScript to customize column header tooltips
-    tooltips_js = """
-    () => {
-        function customizeTooltips() {
-            const table = document.querySelector('#leaderboard_table');
-            if (table) {
-                const headers = table.querySelectorAll('thead th');
-                for (let i = 0; i < headers.length; i++) {
-                    const header = headers[i];
-                    const headerButton = header.querySelector('.header-button');
-
-                    if (headerButton) {
-                        const span = headerButton.querySelector('span');
-                        const text = span ?
-                            span.textContent.replace(' ⓘ', '').trim() : '';
-
-                        if (text === 'Score') {
-                            // Customize Score column tooltip and add info icon
-                            const scoreLabel =
-                                "Bradley–Terry rating from pairwise battles";
-                            header.setAttribute('title', scoreLabel);
-                            headerButton.setAttribute('title', scoreLabel);
-
-                            // Add info icon
-                            if (span && !span.querySelector('.info-icon')) {
-                                const infoIcon = document.createElement('span');
-                                infoIcon.className = 'info-icon';
-                                infoIcon.textContent = ' ⓘ';
-                                infoIcon.style.cssText =
-                                    'opacity: 0.6; font-size: 0.9em;';
-                                span.appendChild(infoIcon);
-                            }
-                        } else {
-                            // Remove tooltips from all other columns
-                            header.removeAttribute('title');
-                            headerButton.removeAttribute('title');
-                        }
-                    }
-                }
-            }
+    with gr.Column(elem_classes="leaderboard-header"):
+        # Title and stats
+        gr.HTML(
+            """
+        <h1 style="
+            font-size: var(--text-section-title);
+            color: var(--body-text-color);
+            font-weight: 600;
+        ">🏆 Leaderboard</h1>
+        <style>
+        /* Prevent header from growing vertically */
+        .leaderboard-header {
+            flex-grow: 0 !important;
+            gap: 0 !important;
         }
 
-        setTimeout(customizeTooltips, 1500);
-    }
-    """
+        /* Search box styling */
+        .leaderboard_search {
+            border-radius: 12px !important;
+        }
 
-    with gr.Blocks() as blocks:
-        with gr.Column(elem_classes="leaderboard-header"):
-            # Title and stats
-            gr.HTML(
-                """
-            <h1 style="
-                font-size: var(--text-section-title);
-                color: var(--body-text-color);
-                font-weight: 600;
-            ">🏆 Leaderboard</h1>
-            <style>
-            /* Prevent header from growing vertically */
-            .leaderboard-header {
-                flex-grow: 0 !important;
-                gap: 0 !important;
-            }
+        .leaderboard_search textarea {
+            overflow-y: auto !important;
+            padding: 16px 20px !important;
+            line-height: 1.5 !important;
+        }
 
-            /* Search box styling */
-            .leaderboard_search {
-                border-radius: 12px !important;
-            }
+        /* Table links Styling */
+        #leaderboard_table .md a {
+            color: var(--body-text-color) !important;
+            text-decoration: none !important;
+            transition: color 0.2s ease;
+        }
 
-            .leaderboard_search textarea {
-                overflow-y: auto !important;
-                padding: 16px 20px !important;
-                line-height: 1.5 !important;
-            }
+        #leaderboard_table .md a:hover {
+            color: var(--color-accent) !important;
+        }
 
-            /* Table links Styling */
-            #leaderboard_table .md a {
-                color: var(--body-text-color) !important;
-                text-decoration: none !important;
-                transition: color 0.2s ease;
-            }
+        </style>
+        """
+        )
 
-            #leaderboard_table .md a:hover {
-                color: var(--color-accent) !important;
-            }
+        subtitle_row = gr.HTML(create_subtitle_row_html(initial_updated_at))
 
-            </style>
+        # State to store the full dataframe for filtering
+        df_state = gr.State(initial_df)
+
+        # Placeholder - shown when no data
+        leaderboard_placeholder = gr.HTML(
             """
-            )
-
-            subtitle_row = gr.HTML(create_subtitle_row_html(initial_updated_at))
-
-            # State to store the full dataframe for filtering
-            df_state = gr.State(initial_df)
-
-            # Placeholder - shown when no data
-            leaderboard_placeholder = gr.HTML(
-                """
-            <div style="
-                background: var(--panel-background-fill);
-                border: 2px solid var(--border-color-primary);
-                border-radius: 12px;
-                padding: 64px 48px;
-            ">
-                <div style="max-width: 800px; margin: 0 auto; text-align: center;">
-                    <!-- Icon -->
+        <div style="
+            background: var(--panel-background-fill);
+            border: 2px solid var(--border-color-primary);
+            border-radius: 12px;
+            padding: 64px 48px;
+        ">
+            <div style="max-width: 800px; margin: 0 auto; text-align: center;">
+                <!-- Icon -->
+                <div style="
+                    display: flex;
+                    justify-content: center;
+                    margin-bottom: 24px;
+                ">
                     <div style="
+                        width: 56px;
+                        height: 56px;
+                        border-radius: 50%;
+                        background: color-mix(
+                            in srgb, var(--color-accent) 10%, transparent
+                        );
                         display: flex;
+                        align-items: center;
                         justify-content: center;
-                        margin-bottom: 24px;
                     ">
-                        <div style="
-                            width: 56px;
-                            height: 56px;
-                            border-radius: 50%;
-                            background: color-mix(
-                                in srgb, var(--color-accent) 10%, transparent
-                            );
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                        ">
-                            <span style="font-size: 28px;">⏰</span>
-                        </div>
-                    </div>
-
-                    <!-- Title -->
-                    <h2 style="
-                        font-weight: 500;
-                        margin-bottom: 16px;
-                        line-height: 1.5;
-                        color: var(--body-text-color);
-                    ">
-                        Leaderboard Rankings Coming Soon
-                    </h2>
-
-                    <!-- Description -->
-                    <p style="
-                        color: var(--body-text-color);
-                        line-height: 1.625;
-                        margin-bottom: 0;
-                    ">
-                        The leaderboard will be published once we have
-                        sufficient evaluations to ensure statistically
-                        meaningful model rankings.
-                    </p>
-                    <div style="padding-top: 16px;">
-                        <p style="
-                            color: var(--body-text-color-subdued);
-                            line-height: 1.625;
-                            margin: 0;
-                        ">
-                            Keep battling to help us build a comprehensive benchmark
-                        </p>
+                        <span style="font-size: 28px;">⏰</span>
                     </div>
                 </div>
-            </div>
-            """,
-            )
 
-        # Search filter + table
-        with gr.Column(visible=False) as leaderboard_content:
-            with gr.Row():
-                model_filter = gr.Textbox(
-                    show_label=False,
-                    placeholder="Search models or organizations...",
-                    elem_classes="leaderboard_search",
-                    container=False,
-                )
+                <!-- Title -->
+                <h2 style="
+                    font-weight: 500;
+                    margin-bottom: 16px;
+                    line-height: 1.5;
+                    color: var(--body-text-color);
+                ">
+                    Leaderboard Rankings Coming Soon
+                </h2>
 
-            # Main leaderboard table
-            leaderboard_table = gr.Dataframe(
-                value=initial_df,
-                interactive=False,
-                wrap=True,
-                headers=[
-                    "Rank",
-                    "Model",
-                    "Score",
-                    "95% CI",
-                    "Total Votes",
-                    "Organization",
-                    "License",
-                ],
-                datatype=[
-                    "number",
-                    "markdown",
-                    "number",
-                    "str",
-                    "number",
-                    "str",
-                    "str",
-                ],
-                elem_id="leaderboard_table",
-            )
-
-            # Ranking methodology note
-            gr.HTML(
-                """
-            <div style="
-                padding: 16px 24px;
-                max-width: 850px;
-                margin: 0 auto;
-            ">
-                <div style="text-align: center;">
-                    <h3 style="
-                        color: var(--accent-teal);
-                        font-weight: 600;
-                        margin-bottom: 8px;
-                        margin-top: 0;
-                    ">How Rankings Are Determined</h3>
+                <!-- Description -->
+                <p style="
+                    color: var(--body-text-color);
+                    line-height: 1.625;
+                    margin-bottom: 0;
+                ">
+                    The leaderboard will be published once we have
+                    sufficient evaluations to ensure statistically
+                    meaningful model rankings.
+                </p>
+                <div style="padding-top: 16px;">
                     <p style="
                         color: var(--body-text-color-subdued);
-                        line-height: 1.6;
+                        line-height: 1.625;
                         margin: 0;
                     ">
-                        Models are currently ranked by Score (Bradley–Terry rating) only. As more evaluations are collected,
-                        we will transition to significance-aware ranks based on bootstrapped
-                        confidence intervals, which account for statistical uncertainty and may
-                        result in tied ranks.
+                        Keep battling to help us build a comprehensive benchmark
                     </p>
                 </div>
             </div>
+        </div>
+        """,
+        )
+
+    # Search filter + table
+    with gr.Column(visible=False) as leaderboard_content:
+        with gr.Row():
+            model_filter = gr.Textbox(
+                show_label=False,
+                placeholder="Search models or organizations...",
+                elem_classes="leaderboard_search",
+                container=False,
+            )
+
+        # Main leaderboard table
+        leaderboard_table = gr.Dataframe(
+            value=initial_df,
+            interactive=False,
+            wrap=True,
+            headers=[
+                "Rank",
+                "Model",
+                "Score",
+                "95% CI",
+                "Total Votes",
+                "Organization",
+                "License",
+            ],
+            datatype=[
+                "number",
+                "markdown",
+                "number",
+                "str",
+                "number",
+                "str",
+                "str",
+            ],
+            elem_id="leaderboard_table",
+        )
+
+        # Ranking methodology note
+        gr.HTML(
             """
-            )
+        <div style="
+            padding: 16px 24px;
+            max-width: 850px;
+            margin: 0 auto;
+        ">
+            <div style="text-align: center;">
+                <h3 style="
+                    color: var(--accent-teal);
+                    font-weight: 600;
+                    margin-bottom: 8px;
+                    margin-top: 0;
+                ">How Rankings Are Determined</h3>
+                <p style="
+                    color: var(--body-text-color-subdued);
+                    line-height: 1.6;
+                    margin: 0;
+                ">
+                    Models are currently ranked by Score (Bradley–Terry rating) only. As more evaluations are collected,
+                    we will transition to significance-aware ranks based on bootstrapped
+                    confidence intervals, which account for statistical uncertainty and may
+                    result in tied ranks.
+                </p>
+            </div>
+        </div>
+        """
+        )
 
-            # Connect filter to table
-            model_filter.change(
-                fn=filter_leaderboard_table,
-                inputs=[model_filter, df_state],
-                outputs=[leaderboard_table],
-            )
-
-        # Customize column header tooltips on load
-        blocks.load(fn=None, js=tooltips_js)
+        # Connect filter to table
+        model_filter.change(
+            fn=filter_leaderboard_table,
+            inputs=[model_filter, df_state],
+            outputs=[leaderboard_table],
+        )
 
     return LeaderboardView(
         leaderboard_placeholder,
@@ -446,3 +396,54 @@ def build_leaderboard_page():
         df_state,
         subtitle_row,
     )
+
+
+# JavaScript to customize column header tooltips
+_TOOLTIPS_JS = """
+() => {
+    function customizeTooltips() {
+        const table = document.querySelector('#leaderboard_table');
+        if (table) {
+            const headers = table.querySelectorAll('thead th');
+            for (let i = 0; i < headers.length; i++) {
+                const header = headers[i];
+                const headerButton = header.querySelector('.header-button');
+
+                if (headerButton) {
+                    const span = headerButton.querySelector('span');
+                    const text = span ?
+                        span.textContent.replace(' ⓘ', '').trim() : '';
+
+                    if (text === 'Score') {
+                        // Customize Score column tooltip and add info icon
+                        const scoreLabel =
+                            "Bradley–Terry rating from pairwise battles";
+                        header.setAttribute('title', scoreLabel);
+                        headerButton.setAttribute('title', scoreLabel);
+
+                        // Add info icon
+                        if (span && !span.querySelector('.info-icon')) {
+                            const infoIcon = document.createElement('span');
+                            infoIcon.className = 'info-icon';
+                            infoIcon.textContent = ' ⓘ';
+                            infoIcon.style.cssText =
+                                'opacity: 0.6; font-size: 0.9em;';
+                            span.appendChild(infoIcon);
+                        }
+                    } else {
+                        // Remove tooltips from all other columns
+                        header.removeAttribute('title');
+                        headerButton.removeAttribute('title');
+                    }
+                }
+            }
+        }
+    }
+
+    setTimeout(customizeTooltips, 1500);
+}
+"""
+
+with gr.Blocks() as leaderboard_page:
+    leaderboard_view = _build_leaderboard_ui()
+    leaderboard_page.load(fn=None, js=_TOOLTIPS_JS)
