@@ -644,6 +644,12 @@ def build_app():
         carousel.addEventListener('mouseenter', stopAutoRotate);
         carousel.addEventListener('mouseleave', startAutoRotate);
 
+        const indicatorsWrapper = carouselParent.querySelector('.carousel-indicators-wrapper');
+        if (indicatorsWrapper) {{
+            indicatorsWrapper.addEventListener('mouseenter', stopAutoRotate);
+            indicatorsWrapper.addEventListener('mouseleave', startAutoRotate);
+        }}
+
         // Handle accordion clicks to expand/collapse and switch carousel images
         const accordionItems = carouselParent.querySelectorAll('.quest-update-accordion');
 
@@ -718,12 +724,20 @@ def build_app():
             header.addEventListener('click', function(e) {{
                 e.preventDefault();
                 e.stopPropagation();
-                loadUpdateImages(accordion);
+                if (accordion.classList.contains('expanded')) {{
+                    accordion.classList.remove('active', 'expanded');
+                }} else {{
+                    loadUpdateImages(accordion);
+                }}
             }});
             header.addEventListener('keypress', function(e) {{
                 if (e.key === 'Enter' || e.key === ' ') {{
                     e.preventDefault();
-                    loadUpdateImages(accordion);
+                    if (accordion.classList.contains('expanded')) {{
+                        accordion.classList.remove('active', 'expanded');
+                    }} else {{
+                        loadUpdateImages(accordion);
+                    }}
                 }}
             }});
         }});
