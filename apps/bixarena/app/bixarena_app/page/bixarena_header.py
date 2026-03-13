@@ -38,7 +38,9 @@ def build_header(active_page: str | None = None):
             )
         with gr.Column(scale=1, min_width=180):
             # Start as Login; value updated by load / callback events
-            login_btn = gr.Button("Login", variant="primary", elem_id="login-btn")
+            login_btn = gr.Button(
+                "Login", variant="primary", elem_id="login-btn", visible=False
+            )
     # Minimal CSS styling injection (no JS state toggling):
     gr.HTML(
         """
@@ -67,8 +69,8 @@ def update_login_button(request: gr.Request | None = None):
     """Return gr.update for login button based on Python-side auth state."""
     state = get_user_state(request)
     if state.is_authenticated():
-        return gr.update(value="Logout", variant="secondary")
-    return gr.update(value="Login", variant="primary")
+        return gr.update(value="Logout", variant="secondary", visible=True)
+    return gr.update(value="Login", variant="primary", visible=True)
 
 
 def update_battle_column(request: gr.Request | None = None):
