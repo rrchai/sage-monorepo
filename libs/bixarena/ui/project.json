@@ -1,0 +1,8 @@
+{
+  "name": "bixarena-ui",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/bixarena/ui/src",
+  "projectType": "library",
+  "prefix": "bixarena",
+  "tags": ["language:typescript", "scope:bixarena"]
+}

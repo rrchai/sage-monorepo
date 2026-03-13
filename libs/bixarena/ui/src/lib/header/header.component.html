@@ -1,0 +1,33 @@
+<header class="header">
+  <div class="header-container">
+    <a routerLink="/home" class="header-brand">
+      <img src="assets/bixarena/bioarena-logo.svg" alt="BioArena Logo" class="header-logo" />
+      <h1 class="header-title">BioArena</h1>
+    </a>
+
+    <nav class="header-nav">
+      <a routerLink="/battle" routerLinkActive="active" class="nav-btn"> Battle </a>
+      <a routerLink="/leaderboard" routerLinkActive="active" class="nav-btn"> Leaderboard </a>
+    </nav>
+
+    <div class="header-actions">
+      @if (isAuthenticated) {
+        <button
+          pButton
+          label="Logout"
+          severity="secondary"
+          (click)="logout()"
+          class="auth-btn"
+        ></button>
+      } @else {
+        <button
+          pButton
+          label="Login"
+          severity="primary"
+          (click)="login()"
+          class="auth-btn"
+        ></button>
+      }
+    </div>
+  </div>
+</header>

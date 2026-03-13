@@ -1,0 +1,78 @@
+{
+  "name": "bixarena-angular-app",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "bixarena",
+  "sourceRoot": "apps/bixarena/angular-app/src",
+  "tags": ["type:app", "scope:client", "language:typescript"],
+  "targets": {
+    "build": {
+      "executor": "@nx/angular:application",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/bixarena/angular-app",
+        "index": "apps/bixarena/angular-app/src/index.html",
+        "browser": "apps/bixarena/angular-app/src/main.ts",
+        "polyfills": ["zone.js"],
+        "tsConfig": "apps/bixarena/angular-app/tsconfig.app.json",
+        "inlineStyleLanguage": "scss",
+        "assets": [
+          {
+            "input": "apps/bixarena/app/bixarena_app/assets",
+            "glob": "**/*",
+            "output": "assets/bixarena"
+          }
+        ],
+        "stylePreprocessorOptions": {
+          "includePaths": ["libs"]
+        },
+        "styles": [
+          "apps/bixarena/angular-app/src/styles.scss",
+          "node_modules/primeicons/primeicons.css"
+        ],
+        "scripts": []
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            { "type": "initial", "maximumWarning": "500kb", "maximumError": "2.0mb" },
+            { "type": "anyComponentStyle", "maximumWarning": "2kb", "maximumError": "8kb" }
+          ],
+          "outputHashing": "all"
+        },
+        "development": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "serve": {
+      "executor": "@nx/angular:dev-server",
+      "options": { "host": "0.0.0.0", "port": 4300 },
+      "configurations": {
+        "production": { "buildTarget": "bixarena-angular-app:build:production" },
+        "development": { "buildTarget": "bixarena-angular-app:build:development" }
+      },
+      "defaultConfiguration": "development",
+      "continuous": true
+    },
+    "lint": { "executor": "@nx/eslint:lint" },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "apps/bixarena/angular-app/jest.config.ts",
+        "tsConfig": "apps/bixarena/angular-app/tsconfig.spec.json"
+      }
+    },
+    "e2e": {
+      "executor": "@nx/playwright:playwright",
+      "outputs": ["{workspaceRoot}/dist/.playwright/apps/bixarena/angular-app"],
+      "options": {
+        "config": "apps/bixarena/angular-app/playwright.config.ts"
+      }
+    }
+  }
+}

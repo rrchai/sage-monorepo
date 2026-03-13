@@ -1,0 +1,8 @@
+{
+  "name": "bixarena-battle",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/bixarena/battle/src",
+  "projectType": "library",
+  "prefix": "bixarena",
+  "tags": ["language:typescript", "scope:bixarena"]
+}

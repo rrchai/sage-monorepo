@@ -1,0 +1,85 @@
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="hero-content">
+    <p class="hero-welcome">Welcome to BioArena</p>
+    <h1 class="hero-title">Drive the next wave of biomedical breakthroughs</h1>
+    <p class="hero-description">
+      BioArena crowdsources the benchmarking of AI models to unlock the next breakthrough in
+      biomedicine, inviting a global community of researchers, clinicians, and biomedical
+      enthusiasts.
+    </p>
+  </div>
+  <div class="hero-logo">
+    <img src="assets/bixarena/bioarena-logo.svg" alt="BioArena Fox" class="fox-logo" />
+  </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+  <p-button label="Start Evaluating Models" severity="info" size="large" routerLink="/battle" />
+  <div class="cta-helper">
+    <span class="pulse-dot"></span>
+    <span>Sign in with your Synapse account to Start a Battle</span>
+  </div>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-section">
+  <div class="stats-bar">
+    <bixarena-stat-card [value]="stats.modelsEvaluated" label="Models Evaluated" />
+    <bixarena-stat-card [value]="stats.totalBattles" label="Total Battles" />
+    <bixarena-stat-card [value]="stats.totalUsers" label="Total Users" />
+  </div>
+</section>
+
+<!-- Arena Rules Section -->
+<section class="rules-section">
+  <div class="rules-header">
+    <h2 class="section-title">Arena Rules</h2>
+    <p class="section-subtitle">Simple evaluation, powerful impact</p>
+  </div>
+  <div class="rules-grid">
+    <div class="rule-card">
+      <div class="rule-header">
+        <div class="step-badge">01</div>
+        <h3 class="rule-title">Log in with Synapse</h3>
+      </div>
+      <p class="rule-description">
+        BioArena uses Synapse for sign-in. Synapse is Sage Bionetworks' secure platform for
+        biomedical researchers and includes account verification and multi-factor authentication for
+        protection.
+      </p>
+    </div>
+    <div class="rule-card">
+      <div class="rule-header">
+        <div class="step-badge">02</div>
+        <h3 class="rule-title">Start a Battle</h3>
+      </div>
+      <p class="rule-description">
+        Pick a curated biomedical question or submit your own prompt. Two AI models are randomly
+        chosen to face off, and their identities stay anonymous so you can focus purely on the
+        response quality.
+      </p>
+    </div>
+    <div class="rule-card">
+      <div class="rule-header">
+        <div class="step-badge">03</div>
+        <h3 class="rule-title">Select the Better</h3>
+      </div>
+      <p class="rule-description">
+        Review the two AI-generated answers side by side and decide which model demonstrates clearer
+        reasoning or insight. Your choice directly shapes model performance metrics.
+      </p>
+    </div>
+    <div class="rule-card">
+      <div class="rule-header">
+        <div class="step-badge">04</div>
+        <h3 class="rule-title">Reveal & Impact</h3>
+      </div>
+      <p class="rule-description">
+        Once you've made your choice, the models are revealed. Only biomedical battles count toward
+        the daily leaderboard. Ready for another round? Jump into your next battle.
+      </p>
+    </div>
+  </div>
+</section>

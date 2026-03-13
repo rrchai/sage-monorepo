@@ -1,0 +1,161 @@
+<div class="battle-page">
+  <!-- Page Header - shown only in idle state -->
+  @if (phase === 'idle') {
+    <div class="page-header">
+      <h1 class="page-title">BioArena</h1>
+      <p class="page-subtitle">Benchmarking AI Models for Biomedical Breakthroughs</p>
+    </div>
+
+    <!-- Example Prompts -->
+    <div class="example-prompts">
+      @for (prompt of examplePrompts; track prompt) {
+        <button class="prompt-card" (click)="submitPrompt(prompt)">
+          <span class="prompt-text">{{ prompt }}</span>
+        </button>
+      }
+    </div>
+  }
+
+  <!-- Battle Interface - shown after prompt submission -->
+  @if (phase !== 'idle') {
+    <div class="battle-interface">
+      <div class="chat-panels">
+        <!-- Model 1 -->
+        <div class="chat-panel">
+          <div class="chat-header">
+            <span class="model-label">{{ model1Name }}</span>
+          </div>
+          <div class="chat-messages">
+            @for (msg of model1Messages; track $index) {
+              <div
+                class="message"
+                [class.user]="msg.role === 'user'"
+                [class.assistant]="msg.role === 'assistant'"
+              >
+                <div class="message-role">{{ msg.role === 'user' ? 'You' : model1Name }}</div>
+                <div class="message-content">
+                  {{ msg.content }}
+                  @if (msg.role === 'assistant' && model1Streaming && $last) {
+                    <span class="cursor">&#9612;</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+          @if (phase === 'voted') {
+            <div class="model-name-footer" [class.winner]="isWinner('left')">
+              {{ model1Name }}
+            </div>
+          }
+        </div>
+
+        <!-- Model 2 -->
+        <div class="chat-panel">
+          <div class="chat-header">
+            <span class="model-label">{{ model2Name }}</span>
+          </div>
+          <div class="chat-messages">
+            @for (msg of model2Messages; track $index) {
+              <div
+                class="message"
+                [class.user]="msg.role === 'user'"
+                [class.assistant]="msg.role === 'assistant'"
+              >
+                <div class="message-role">{{ msg.role === 'user' ? 'You' : model2Name }}</div>
+                <div class="message-content">
+                  {{ msg.content }}
+                  @if (msg.role === 'assistant' && model2Streaming && $last) {
+                    <span class="cursor">&#9612;</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+          @if (phase === 'voted') {
+            <div class="model-name-footer" [class.winner]="isWinner('right')">
+              {{ model2Name }}
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Voting Row -->
+      @if (phase === 'vote-ready' || phase === 'voted') {
+        <div class="voting-row">
+          <button
+            pButton
+            label="Left is Better"
+            [severity]="selectedVote === 'left' ? 'primary' : 'secondary'"
+            [disabled]="phase === 'voted'"
+            (click)="vote('left')"
+          ></button>
+          <button
+            pButton
+            label="Tie"
+            [severity]="selectedVote === 'tie' ? 'primary' : 'secondary'"
+            [disabled]="phase === 'voted'"
+            (click)="vote('tie')"
+          ></button>
+          <button
+            pButton
+            label="Right is Better"
+            [severity]="selectedVote === 'right' ? 'primary' : 'secondary'"
+            [disabled]="phase === 'voted'"
+            (click)="vote('right')"
+          ></button>
+        </div>
+      }
+
+      <!-- Next Battle Row -->
+      @if (phase === 'voted') {
+        <div class="next-battle-row">
+          @if (promptUseRemaining > 0) {
+            <button
+              pButton
+              [label]="'New Battle Same Prompt (' + promptUseRemaining + ' left)'"
+              severity="primary"
+              (click)="newBattleSamePrompt()"
+            ></button>
+          }
+          <button
+            pButton
+            label="New Battle"
+            [severity]="promptUseRemaining > 0 ? 'secondary' : 'primary'"
+            (click)="newBattle()"
+          ></button>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Prompt Input -->
+  @if (phase !== 'voted') {
+    <div class="prompt-input-row">
+      <textarea
+        class="prompt-input"
+        placeholder="Ask anything biomedical..."
+        [(ngModel)]="promptText"
+        (keydown)="onKeydown($event)"
+        [disabled]="phase === 'streaming'"
+        rows="1"
+      ></textarea>
+    </div>
+  }
+
+  <!-- Disclaimer -->
+  @if (phase === 'idle') {
+    <div class="disclaimer">
+      <h3 class="disclaimer-title">Data Processing & Privacy:</h3>
+      <p class="disclaimer-text">
+        We process your prompts to ensure they are relevant to biomedical research. Your prompts are
+        also sent to third-party LLM proxies and AI model providers who may store and use them for
+        training and service improvement.
+        <strong
+          >Do not include private, sensitive, confidential, or personally identifiable information
+          in your prompts.</strong
+        >
+        AI responses may contain errors. Verify all AI responses independently.
+      </p>
+    </div>
+  }
+</div>

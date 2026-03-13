@@ -1,0 +1,65 @@
+<div class="leaderboard-page">
+  <div class="leaderboard-header">
+    <h1 class="page-title">Leaderboard</h1>
+    <div class="header-meta">
+      <p-tag value="Overall" severity="info" />
+      <span class="last-updated">Last updated: {{ lastUpdated }}</span>
+    </div>
+  </div>
+
+  <div class="search-bar">
+    <input
+      pInputText
+      type="text"
+      [(ngModel)]="searchQuery"
+      placeholder="Search by model or organization..."
+      class="search-input"
+    />
+  </div>
+
+  <p-table
+    [value]="filteredData"
+    [tableStyle]="{ 'min-width': '60rem' }"
+    styleClass="p-datatable-striped"
+    [scrollable]="true"
+  >
+    <ng-template #header>
+      <tr>
+        <th>Rank</th>
+        <th>Model</th>
+        <th>Score</th>
+        <th>95% CI</th>
+        <th>Total Votes</th>
+        <th>Organization</th>
+        <th>License</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-entry>
+      <tr>
+        <td>
+          <span class="rank-badge" [class.top-3]="entry.rank <= 3">
+            {{ entry.rank }}
+          </span>
+        </td>
+        <td class="model-name">{{ entry.model }}</td>
+        <td class="score">{{ entry.score }}</td>
+        <td class="ci">{{ entry.ci95 }}</td>
+        <td>{{ entry.totalVotes }}</td>
+        <td>{{ entry.organization }}</td>
+        <td>
+          <p-tag
+            [value]="entry.license"
+            [severity]="entry.license === 'Proprietary' ? 'warn' : 'success'"
+          />
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <div class="methodology-note">
+    <p>
+      Scores are computed using the Bradley-Terry model with bootstrap confidence intervals. Only
+      battles on biomedical prompts are included.
+    </p>
+  </div>
+</div>

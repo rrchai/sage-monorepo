@@ -1,0 +1,88 @@
+:host {
+  display: block;
+  padding: 1rem 1.5rem 2rem;
+}
+
+.leaderboard-page {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.leaderboard-header {
+  margin-bottom: 2rem;
+}
+
+.page-title {
+  font-size: var(--text-section-title);
+  color: var(--body-text-color);
+  margin: 0 0 0.75rem;
+  font-weight: 600;
+}
+
+.header-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.last-updated {
+  color: var(--body-text-color-subdued);
+  font-size: var(--text-sm);
+}
+
+.search-bar {
+  margin-bottom: 1.5rem;
+}
+
+.search-input {
+  width: 100%;
+  max-width: 400px;
+}
+
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--panel-background-fill);
+  border: 1px solid var(--border-color-primary);
+  font-weight: 600;
+  font-size: var(--text-sm);
+
+  &.top-3 {
+    background: color-mix(in srgb, var(--accent-teal) 15%, transparent);
+    border-color: var(--accent-teal);
+    color: var(--accent-teal-light);
+  }
+}
+
+.model-name {
+  font-weight: 500;
+  color: var(--body-text-color);
+}
+
+.score {
+  font-weight: 600;
+  color: var(--accent-teal-light);
+}
+
+.ci {
+  color: var(--body-text-color-subdued);
+}
+
+.methodology-note {
+  margin-top: 2rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--border-color-primary);
+  border-radius: 0.5rem;
+  background-color: var(--panel-background-fill);
+
+  p {
+    margin: 0;
+    color: var(--body-text-color-subdued);
+    font-size: var(--text-sm);
+    line-height: 1.5;
+  }
+}
