@@ -314,6 +314,7 @@ def _build_leaderboard_ui() -> "LeaderboardView":
             </div>
         </div>
         """,
+            visible=False,
         )
 
     # Search filter + table
